@@ -18,4 +18,4 @@ Roguelike Restoration Project: https://github.com/RoguelikeRestorationProject/sr
 - `web:` browser build (`web/build.sh`), played at https://ruzzoli.de/roguelikes/srogue/
 
 Build: `make srogue-x11` (XQuartz), `./play.sh`; web: `sh web/build.sh`, `web/deploy.sh`.
-Notes for the next person: `HANDOVER.md`. Process: `~/Games/RVIP.md`, `~/Games/rogue2wasm.md`.
+Notes for the next person: `HANDOVER.md`. Process: `~/Games/rvip-tools/RVIP.md`, `~/Games/rogue2wasm.md`.
