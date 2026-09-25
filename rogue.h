@@ -14,6 +14,10 @@
  * See the file LICENSE.TXT for full copyright and licensing information.
  */
 
+#include <stdlib.h>		/* port: srand48/free/abort are void: wasm traps on implicit int */
+#include <unistd.h>
+#define daemon sr_daemon		/* port: not libc daemon(3) */
+
 #ifdef BSD
 #include "cx.h"
 #endif
@@ -699,3 +703,17 @@ struct sgttyb _tty;
 #define flushout()	ioctl(2, TCFLSH, 0)
 
 #endif
+
+/* RVIP port (rvip.c, port/) */
+#ifndef XR_SHIM
+#define be_sound(event) ((void) 0)
+#endif
+extern int explore_mode;
+int	explore_step(), explore_stairs(), monster_in_view(), cmd_menu(), inv_menu(), menu();
+void	explore_reset();
+extern struct linked_list *inv_pick;
+extern int inv_again;
+/* port: pointer-returning functions used without a declaration (arm64/wasm truncate them) */
+char	*charge_str(), *ring_num();
+/* port: variadic functions need a prototype on arm64 (args go on the stack) */
+int	msg(char *, ...), addmsg(char *, ...);

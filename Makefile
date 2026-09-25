@@ -19,12 +19,12 @@ OBJS= vers.o armor.o chase.o command.o daemon.o daemons.o disply.o encumb.o \
       fight.o global.o init.o io.o list.o main.o misc.o monsters.o move.o \
       new_leve.o options.o pack.o passages.o potions.o pstats.o rings.o rip.o \
       rooms.o save.o scrolls.o state.o sticks.o things.o trader.o weapons.o \
-      wizard.o xcrypt.o
+      wizard.o xcrypt.o rvip.o
 CFILES= vers.c armor.c chase.c command.c daemon.c daemons.c disply.c encumb.c \
       fight.c global.c init.c io.c list.c main.c misc.c monsters.c move.c \
       new_leve.c options.c pack.c passages.c potions.c pstats.c rings.c rip.c \
       rooms.c save.c scrolls.c state.c sticks.c things.c trader.c weapons.c \
-      wizard.c xcrypt.c
+      wizard.c xcrypt.c rvip.c
 
 MISC=	Makefile LICENSE.TXT rogue.nr
 
@@ -128,3 +128,9 @@ dist.djgpp:
 	groff -t -mm -Tascii rogue.nr | sed -e 's/.\x08//g' > $(PROGRAM).doc
 	rm -f $(DISTNAME)-djgpp.zip
 	zip $(DISTNAME)-djgpp.zip $(PROGRAM).exe LICENSE.TXT $(PROGRAM).doc
+
+# macOS/XQuartz build with the curses shim and NetHack tiles (RVIP); two status lines
+XFLAGS = -O2 -g -std=gnu89 -w -Wno-implicit-function-declaration -Wno-implicit-int -Wno-return-type -Wno-int-conversion -Wno-incompatible-pointer-types -DWC_MORESTR_ARRAY -Iport -I/opt/X11/include -I/opt/X11/include/freetype2
+PORTSRC = port/wcurses.c port/tiles.c port/be_x11.c
+srogue-x11: $(CFILES) $(HDRS) $(PORTSRC) port/curses.h port/tilemap.h
+	$(CC) $(XFLAGS) $(EXTRA) $(CFILES) $(PORTSRC) -L/opt/X11/lib -lX11 -lXft -lfontconfig -o $@

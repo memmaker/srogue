@@ -64,10 +64,12 @@ char **envp;
 
 	playuid = getuid();
 
+#ifndef __EMSCRIPTEN__	/* web: no setuid */
 	if (setuid(playuid) < 0) {
 		printf("Cannot change to effective uid: %d\n", playuid);
 		exit(1);
 	}
+#endif
 	playgid = getgid();
 
 	/* check for print-score option */
@@ -130,8 +132,12 @@ char **envp;
 	{
 		if((pw = getpwuid(playuid)) == NULL)
 		{
+#ifdef __EMSCRIPTEN__			/* web: no passwd; the game's own default */
+			strcpy(whoami, "Rodney");
+#else
 			printf("Say, who are you?\n");
 			exit(1);
+#endif
 		}
 		else
 			strucpy(whoami, pw->pw_name, strlen(pw->pw_name));
@@ -143,6 +149,11 @@ char **envp;
 	if (argc == 2)
 		if(!restore(argv[1], envp)) /* NOTE: NEVER RETURNS */
 			exit(1);
+#ifdef __EMSCRIPTEN__
+	/* web: continue the autosave */
+	if (argc < 2 && access(file_name, 0) == 0 && !restore(file_name, envp))
+		exit(1);
+#endif
 
 	dnum = (wizard && getenv("SEED") != NULL ?
 		atoi(getenv("SEED")) : lowtime + getpid());
@@ -199,6 +210,7 @@ char **envp;
 	cw = newwin(0, 0, 0, 0);
 	mw = newwin(0, 0, 0, 0);
 	hw = newwin(0, 0, 0, 0);
+	wc_mapwin = cw;
 	waswizard = wizard;
 
 	/* Draw current level */

@@ -83,6 +83,10 @@ gotfile:
 	c = dosave();		/* try to save this game */
 	if (c == FALSE)
 		msg("Could not save game to file %s", file_name);
+#ifdef __EMSCRIPTEN__
+	else
+		wc_saved = TRUE;	/* keep the file (be_web.c) */
+#endif
 	return c;
 }
 
@@ -182,7 +186,7 @@ FILE *savef;
 	encwrite(&scols,sizeof(scols),savef);
 	msg("");
 	rs_save_file(savef);
-	close(fnum);
+	fclose(savef);		/* port: flush the buffered data (was close(fnum)) */
 	signal(SIGINT, byebye);
 	signal(SIGQUIT, byebye);
 	wclear(cw);
@@ -234,6 +238,7 @@ char *file, **envp;
 	 * inode for as long as possible
 	 */
 
+#ifndef __EMSCRIPTEN__	/* web: IDBFS does not keep inodes */
 	if (!wizard)
 	{
 		if(sbuf2.st_ino!=sbuf.st_ino || sbuf2.st_dev!=sbuf.st_dev) {
@@ -241,6 +246,7 @@ char *file, **envp;
 			return FALSE;
 		}
 	}
+#endif
 
 #ifdef __INTERIX
 	setenv("TERM","interix");
@@ -267,6 +273,7 @@ char *file, **envp;
 	cw = newwin(LINES, COLS, 0, 0);
 	mw = newwin(LINES, COLS, 0, 0);
 	hw = newwin(LINES, COLS, 0, 0);
+	wc_mapwin = cw;
 
 	mpos = 0;
 	mvwprintw(cw, 0, 0, "%s: %s", file, ctime(&sbuf2.st_mtime));
@@ -293,9 +300,13 @@ char *file, **envp;
 #if defined(__CYGWIN__) || defined(__DJGPP__)
 	close(inf);
 #endif
+#ifdef __EMSCRIPTEN__		/* web: kept as the autosave, removed at game end */
+	if (0)
+#else
 	if (!wizard)
+#endif
 	{
-#ifndef __DJGPP__
+#if !defined(__DJGPP__) && !defined(XR_SHIM)	/* port: endwin() would close the window */
 			endwin();
 			while((pid = fork()) < 0)
 				sleep(1);

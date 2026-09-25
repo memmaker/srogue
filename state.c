@@ -680,7 +680,7 @@ int
 rs_read_long(int inf, long *i)
 {
     unsigned char bytes[4];
-    long input;
+    int input;			/* port: 4 bytes on disk; a 64-bit long kept 4 stale bytes */
     unsigned char *buf = (unsigned char *) &input;
     
     rs_read(inf, &input, 4);
@@ -694,7 +694,7 @@ rs_read_long(int inf, long *i)
         buf = bytes;
     }
     
-    *i = *((long *) buf);
+    *i = *((int *) buf);
 
     return(READSTAT);
 }
@@ -722,7 +722,7 @@ int
 rs_read_ulong(int inf, unsigned long *i)
 {
     unsigned char bytes[4];
-    unsigned long input;
+    unsigned int input;		/* port: 4 bytes on disk (see rs_read_long) */
     unsigned char *buf = (unsigned char *) &input;
     
     rs_read(inf, &input, 4);
@@ -736,7 +736,7 @@ rs_read_ulong(int inf, unsigned long *i)
         buf = bytes;
     }
     
-    *i = *((unsigned long *) buf);
+    *i = *((unsigned int *) buf);
 
     return(READSTAT);
 }

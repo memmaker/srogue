@@ -128,10 +128,25 @@ char ch;
 
 readchar()
 {
-	char c;
+	int c;		/* RVIP: key codes are wider than a char */
 
 	fflush(stdout);
+#ifdef XR_SHIM		/* RVIP: the shim returns curses key codes */
+	switch (c = wgetch(cw)) {
+	case KEY_LEFT:  return 'h';
+	case KEY_RIGHT: return 'l';
+	case KEY_UP:    return 'k';
+	case KEY_DOWN:  return 'j';
+	case KEY_HOME:  case KEY_A1: return 'y';
+	case KEY_PPAGE: case KEY_A3: return 'u';
+	case KEY_END:   case KEY_C1: return 'b';
+	case KEY_NPAGE: case KEY_C3: return 'n';
+	case KEY_B2:    return '.';
+	}
+	return c;
+#else
         return( wgetch(cw) );
+#endif
 }
 
 char *hungstr[] = {
