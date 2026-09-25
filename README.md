@@ -7,7 +7,9 @@ Roguelike Restoration Project: https://github.com/RoguelikeRestorationProject/sr
 (commit 1 is the untouched upstream; everything after it is ours).
 
 - `port:` builds on macOS/arm64 and WebAssembly, curses shim (`port/`) with
-  an X11 frontend, NetHack tiles (`port/mktiles.py`); fixes crashes from
+  an X11 frontend, NetHack tiles (`port/mktiles.py`), DawnLike as a second
+  set (`port/mkdawn.py`; DragonDePlatino, palette DawnBringer, CC BY 4.0;
+  web: *Tiles* button, desktop: `TILESET=dawn ./play.sh`); fixes crashes from
   undeclared functions (variadic `msg`, pointer-returning `charge_str`/`ring_num`,
   void `srand48`/`free`), a save that lost its buffered tail and 4-byte longs
   read into 8-byte ones.

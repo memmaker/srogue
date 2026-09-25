@@ -90,6 +90,7 @@ parts.append(section('web', 'Playing in the browser', WEB))
 # RVIP: About this version (rogue2wasm.md: Source and changes)
 parts.append('<h2 id="h-version">About this version</h2><ul>'
              '<li>Based on <strong>Super-Rogue 9.0</strong> (Robert D. Kindelberger, 1984; Roguelike Restoration Project release 9.0-1).</li>'
+             '<li>Tiles: NetHack (default) or <strong>DawnLike</strong> by DragonDePlatino with DawnBringer\'s palette (CC BY 4.0), sprites picked by name via Tommy Ettinger\'s <a href="https://github.com/tommyettinger/DawnLikeAtlas" target="_blank" rel="noopener">DawnLikeAtlas</a>; switch with the <em>Tiles</em> button.</li>'
              '<li>Original source: <a href="https://github.com/RoguelikeRestorationProject/srogue/tree/c693810" target="_blank" rel="noopener">RoguelikeRestorationProject/srogue, commit c693810</a></li>'
              '<li>Our changes (port, auto-explore, command menu, web build): '
              '<a href="https://github.com/memmaker/srogue/compare/c693810...master" target="_blank" rel="noopener">memmaker/srogue, compared with the original</a></li></ul>')

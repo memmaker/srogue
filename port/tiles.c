@@ -31,28 +31,31 @@ static int obj_tile(struct object *o)
     return -1;
 }
 
-static int shown(int y, int x)
+/* Neighbours come from the real map (stdscr), so a monster or the player
+   standing next to a wall does not change its shape. */
+static int real(int y, int x)
 {
     return (y < 1 || y >= LINES - WC_STATUS_ROWS || x < 0 || x >= COLS) ? ' '
-        : wc_mapwin->c[y * wc_mapwin->maxx + x] & A_CHARTEXT;
+        : stdscr->c[y * stdscr->maxx + x] & A_CHARTEXT;
 }
+
+#define HWALLISH(c) ((c) == '-' || (c) == DOOR || (c) == SECRETDOOR)
+#define VWALLISH(c) ((c) == '|' || (c) == DOOR || (c) == SECRETDOOR)
 
 static int terrain(int y, int x, int ch)
 {
-    int up, dn, l, r;
+    int l, r;
     switch (ch) {
     case '-':
-        up = shown(y - 1, x); dn = shown(y + 1, x);
-        l = shown(y, x - 1); r = shown(y, x + 1);
-        if (dn == '|' || dn == DOOR)
-            return r == '-' ? T_TL : l == '-' ? T_TR : T_HWALL;
-        if (up == '|' || up == DOOR)
-            return r == '-' ? T_BL : l == '-' ? T_BR : T_HWALL;
+        l = real(y, x - 1); r = real(y, x + 1);
+        if (HWALLISH(l) && HWALLISH(r)) return T_HWALL;
+        if (VWALLISH(real(y + 1, x)))
+            return HWALLISH(r) ? T_TL : T_TR;
+        if (VWALLISH(real(y - 1, x)))
+            return HWALLISH(r) ? T_BL : T_BR;
         return T_HWALL;
     case '|': return T_VWALL;
-    case DOOR:
-        l = shown(y, x - 1); r = shown(y, x + 1);
-        return (l == '-' || r == '-') ? T_HDOOR : T_VDOOR;
+    case DOOR: return T_FLOOR;   /* Rogue doors are just gaps in the wall */
     }
     return ch < 128 ? terrain_tile[ch] : -1;
 }
@@ -62,7 +65,7 @@ static int floor_under(int y, int x)
 {
     int c = stdscr->c[y * stdscr->maxx + x] & A_CHARTEXT;
     if (c == PASSAGE) return T_CORR;
-    if (c == DOOR) return terrain(y, x, DOOR);
+    if (c == DOOR) return T_FLOOR;
     if (c == STAIRS || strchr("\\>{$}~`\"^", c)) return terrain_tile[c];  /* srogue: one char per trap */
     return T_FLOOR;
 }
