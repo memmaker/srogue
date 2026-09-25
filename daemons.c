@@ -175,6 +175,7 @@ int fromfuse;
 			hungry_state = F_WEAK;
 		}
 		else if(food_left < HUNGTIME && oldfood >= HUNGTIME) {
+			be_sound("hungry");
 			msg("Getting hungry.");
 			hungry_state = F_HUNGRY;
 		}

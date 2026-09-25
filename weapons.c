@@ -230,6 +230,7 @@ wield()
 		after = FALSE;
 		return;
 	}
+	be_sound("wield");
 	msg("Wielding %s", inv_name(obj, TRUE));
 	cur_weapon = obj;
 }

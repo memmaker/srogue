@@ -39,6 +39,7 @@ wear()
 		return;
 	}
 	waste_time();
+	be_sound("wield");
 	msg("Wearing %s.", a_magic[obj->o_which].mi_name);
 	cur_armor = obj;
 	setoflg(obj,ISKNOW);

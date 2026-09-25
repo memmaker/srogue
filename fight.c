@@ -377,6 +377,7 @@ check_level()
 		him->s_maxhp += add;
 		if ((him->s_hpt += add) > him->s_maxhp)
 			him->s_hpt = him->s_maxhp;
+		be_sound("level");
 		msg("Welcome to level %d", lev);
 	}
 	him->s_lvl = lev;
@@ -525,6 +526,7 @@ static char tbuf[LINLEN];
 hit(er)
 char *er;
 {
+	be_sound(er == 0 ? "hit" : "mon_hit");
 	msg("%s hit.",prname(er, TRUE));
 }
 
@@ -536,6 +538,7 @@ char *er;
 miss(er)
 char *er;
 {
+	if (er == 0) be_sound("miss");
 	msg("%s miss%s.",prname(er, TRUE),(er == 0 ? "":"es"));
 }
 
@@ -669,6 +672,7 @@ bool pr;
 	tp = THINGPTR(item);
 	here = tp->t_pos;
 	if (pr) {
+		be_sound("kill");
 		addmsg("Defeated ");
 		if (pl_on(ISBLIND))
 			msg("it.");

@@ -256,6 +256,7 @@ eat()
 
 	if ((item = get_item("eat", FOOD)) == NULL)
 		return;
+	be_sound("eat");
 	obj = OBJPTR(item);
 	if (obj->o_type != FOOD) {
 		msg("That's Inedible!");

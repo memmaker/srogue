@@ -65,6 +65,7 @@ char monst;
 	char buf[LINLEN];
 	struct tm *localtime();
 
+	be_sound("death");
 	time(&date);
 	lt = localtime(&date);
 	clear();

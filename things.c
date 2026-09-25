@@ -188,6 +188,7 @@ money()
 
 	rp = player.t_room;
 	if (rp != NULL && ce(hero, rp->r_gold)) {
+		be_sound("money1");
 		msg("%d gold pieces.", rp->r_goldval);
 		purse += rp->r_goldval;
 		rp->r_goldval = 0;
@@ -266,6 +267,7 @@ struct linked_list *item;
 			attach(lvl_obj, ll);
 			mvaddch(hero.y, hero.x, op->o_type);
 			op->o_pos = hero;
+			be_sound("drop");
 			msg("Dropped %s", inv_name(op, TRUE));
 		}
 	}

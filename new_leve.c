@@ -29,6 +29,7 @@ int ltype;
 	struct coord traploc;
 	struct room *rp;
 
+	explore_reset();
 	if (level > max_level)
 		max_level = level;
 

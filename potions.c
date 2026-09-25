@@ -35,6 +35,7 @@ quaff()
 	 */
 	if ((item = get_item("quaff", POTION)) == NULL)
 		return;
+	be_sound("quaff");
 	obj = OBJPTR(item);
 	if (obj->o_type != POTION) {
 		msg("That's undrinkable!");

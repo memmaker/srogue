@@ -300,6 +300,35 @@ int type;
 		msg("You aren't carrying anything.");
 		return NULL;
 	}
+	if (inv_pick) {			/* RVIP 3c: chosen in the inventory */
+		obj = inv_pick;
+		inv_pick = NULL;
+		return obj;
+	}
+	if (purpose) {			/* RVIP 3c: a list with a cursor */
+		struct linked_list *it[MAXPACK + 30];
+		char *items[MAXPACK + 30], keys[MAXPACK + 30], text[MAXPACK + 30][160];
+		char title[160];
+		int n = 0, i, all;
+
+		for (all = 0; all < 2 && n == 0; all++)
+			for (obj = pack, och = 'a'; obj != NULL && n < MAXPACK + 30; obj = next(obj), och = npch(och))
+				if (all || type <= 0 || (OBJPTR(obj))->o_type == type) {
+					sprintf(text[n], "%c) %s", och, inv_name(OBJPTR(obj), FALSE));
+					items[n] = text[n]; keys[n] = och; it[n++] = obj;
+				}
+		sprintf(title, "%s what?", purpose);
+		title[0] = toupper(title[0]);
+		i = menu(title, items, keys, n);
+		touchwin(cw);			/* closes the list */
+		draw(cw);
+		if (i < 0) {
+			after = FALSE;
+			msg("");
+			return NULL;
+		}
+		return it[i];
+	}
 	if (type != WEAPON && (type != 0 || next(pack) == NULL)) {
 		/*
 		 * see if we have any of the type requested
