@@ -19,6 +19,21 @@ EM_JS(void, js_prompt, (const char *s), { Module.xr.prompt(UTF8ToString(s)); });
 void be_prompt(const char *s) { js_prompt(s); }
 EM_JS(int, js_want_save, (void), { return Module.xr.wantSave(); });
 EM_JS(void, js_sound, (const char *s), { Module.xr.sound(UTF8ToString(s)); });
+/* Run report (roguelikes-index/server/CONTRACT.md): fire-and-forget GET,
+   never throws, offline just fails silently. Negative ints are omitted. */
+EM_JS(void, js_beacon, (const char *g, const char *ev, const char *name, const char *killer, int depth, int score, int turns, int lvl), {
+    try {
+        var p = [['g', UTF8ToString(g)], ['ev', UTF8ToString(ev)], ['name', name ? UTF8ToString(name) : ''],
+                 ['killer', killer ? UTF8ToString(killer) : ''], ['depth', depth], ['score', score], ['turns', turns], ['lvl', lvl]];
+        var q = p.filter(function (a) { return a[1] !== '' && !(a[1] < 0); })
+                 .map(function (a) { return a[0] + '=' + encodeURIComponent(a[1]); }).join('&');
+        fetch('/roguelikes/beacon?' + q, { keepalive: true, mode: 'no-cors' }).catch(function () {});
+    } catch (e) {}
+});
+void be_run_end(const char *ev, const char *killer, int score)
+{
+    js_beacon("srogue", ev, whoami, killer, level, score, -1, pstats.s_lvl);
+}
 EM_JS(void, js_end, (int saved, int dead), { Module.xr.end(saved, dead); });
 
 void be_init(int p, int cols, int rows) { js_init(p, cols, rows); }

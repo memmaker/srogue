@@ -384,6 +384,7 @@ quit(int a)
 		clear();
 		move(LINES-1, 0);
 		refresh();
+		be_run_end("quit", NULL, purse);
 		score(purse, CHICKEN, 0);
 		byebye(0);
 	}

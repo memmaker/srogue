@@ -289,6 +289,7 @@ int be_getkey(int wait)
 }
 
 void be_sound(const char *s) { }
+void be_run_end(const char *ev, const char *killer, int score) { }
 
 void be_end(void) { if (dpy) XCloseDisplay(dpy); dpy = NULL; }
 void be_invfg(int y, const char *css) { }

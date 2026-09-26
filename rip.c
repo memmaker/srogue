@@ -78,6 +78,7 @@ char monst;
 	mvaddstr(14, 36 - ((strlen(killer) + 1) / 2), killer);
 	purse -= purse/10;
 	sprintf(buf, "%d Gold Pieces", purse);
+	be_run_end("death", killer, purse);
 	mvaddstr(16, 36 - ((strlen(buf) + 1) / 2), buf);
 	sprintf(prbuf, "%d/%d/%d", lt->tm_mon + 1, lt->tm_mday, 1900+lt->tm_year);
 	mvaddstr(18, 32, prbuf);
@@ -297,6 +298,7 @@ addstr("a great profit and are admitted to the fighters guild.\n");
 	clear();
 	oldpurse = purse;
 	showpack(TRUE, NULL);
+	be_run_end("win", NULL, purse);
 	score(purse, WINNER, 0);
 	byebye(0);
 }
