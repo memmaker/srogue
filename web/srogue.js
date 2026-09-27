@@ -503,15 +503,32 @@
 	tiles.onload = function () { tilesFinished(true); };
 	tiles.onerror = function () { tilesFinished(false); };
 	/* tile sets: same slot layout (port/mkdawn.py); the choice is a per-browser preference */
-	var TILESETS = [['tiles.png', 'NetHack'], ['tiles-dawn.png', 'DawnLike', 'tiles-dawn-1.png'], [null, 'None']], tileset = 0;
-	/* animation: the map swaps to the frame-1 sheet (port/mkdawn.py) twice a second */
-	var tiles1 = new Image(), frame = 0;
-	function loadFrame1() { frame = 0; if (TILESETS[tileset][2]) tiles1.src = TILESETS[tileset][2]; else tiles1.removeAttribute('src'); }
+	var TILESETS = [['tiles.png', 'NetHack'], ['tiles-dawn.png', 'DawnLike'], ['tiles-dawn.png', 'DawnLike|a', 'tiles-dawn-1.png'], [null, 'None']], tileset = 0;
+	/* animation (opt-in, "DawnLike|a"): the map swaps to the frame-1 sheet
+	 * (port/mkdawn.py) twice a second, redrawing only cells whose sprite has
+	 * a different 2nd frame (anim[slot], found by comparing the two sheets) */
+	var tiles1 = new Image(), frame = 0, anim = null;
+	function loadFrame1() { frame = 0; anim = null; if (TILESETS[tileset][2]) tiles1.src = TILESETS[tileset][2]; else tiles1.removeAttribute('src'); }
+	function pixels(im) {
+		var c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
+		var x = c.getContext('2d'); x.drawImage(im, 0, 0); return x.getImageData(0, 0, c.width, c.height).data;
+	}
+	function findAnim() {
+		if (!tiles.naturalWidth || !tiles1.naturalWidth) return;
+		var a = pixels(tiles), b = pixels(tiles1), W = tiles.naturalWidth, n = (W / 16) * (tiles.naturalHeight / 16);
+		anim = new Uint8Array(n);
+		for (var s = 0; s < n; s++)
+			for (var y = 0, x0 = (s % (W / 16)) * 16, y0 = ((s / (W / 16)) | 0) * 16; y < 16 && !anim[s]; y++)
+				for (var i = ((y0 + y) * W + x0) * 4, e = i + 64; i < e; i++) if (a[i] !== b[i]) { anim[s] = 1; break; }
+	}
+	tiles1.onload = findAnim;
 	setInterval(function () {
 		var T = panes[P_MAP];
-		if (!T || !tilesReady || !tiles1.naturalWidth || !TILESETS[tileset][2] || document.hidden) return;
+		if (!T || !tilesReady || !TILESETS[tileset][2] || document.hidden) return;
+		if (!anim) findAnim();
+		if (!anim) return;
 		frame ^= 1;
-		for (var i = 0; i < T.cols * T.rows; i++) if (T.t[i] >= 0) draw(P_MAP, (i / T.cols) | 0, i % T.cols);
+		for (var i = 0; i < T.cols * T.rows; i++) if (anim[T.t[i]] || anim[T.u[i]]) draw(P_MAP, (i / T.cols) | 0, i % T.cols);
 		drawCursor();
 	}, 500);
 	try { tileset = +localStorage.getItem('tileset') % TILESETS.length || 0; } catch (err) { /* no storage */ }
