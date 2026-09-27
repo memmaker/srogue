@@ -73,18 +73,14 @@ static int terrain(int y, int x, int ch)
     return ch < 128 ? terrain_tile[ch] : -1;
 }
 
-/* Floor kind of a cell as the player sees it (cw); a monster, item, trap or
-   the hero stands on what the real map (stdscr) has there. */
+/* Floor kind of a cell on the real level (stdscr), not the player's view:
+   a border is part of the terrain and must not follow the lit area. */
 static int kind(int y, int x)
 {
-    int c;
-    if (y < 1 || y >= LINES - WC_STATUS_ROWS || x < 0 || x >= COLS) return K_NONE;
-    c = cw->c[y * cw->maxx + x] & A_CHARTEXT;
-    if (c == ' ' || c == '-' || c == '|') return K_NONE;
+    int c = real(y, x);
+    if (c == ' ' || c == '-' || c == '|' || c == SECRETDOOR) return K_NONE;
     if (c == DOOR) return K_DOOR;
-    if (c == FLOOR) return K_ROOM;
-    if (c == PASSAGE || real(y, x) == PASSAGE) return K_CORR;
-    return real(y, x) == DOOR ? K_DOOR : K_ROOM;
+    return c == PASSAGE ? K_CORR : K_ROOM;
 }
 
 /* DawnLike autotile (RVIP-Finetuning): a border on each side whose
