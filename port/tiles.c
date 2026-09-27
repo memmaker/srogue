@@ -31,6 +31,14 @@ static int obj_tile(struct object *o)
     return -1;
 }
 
+int wc_mon_tile(int ch) { return isalpha(ch) ? mon_tile[midx(ch)] : -1; }
+
+int wc_obj_tile(struct object *o)
+{
+    int t = obj_tile(o);
+    return t >= 0 ? t : o->o_type < 128 ? generic_tile[o->o_type] : -1;
+}
+
 /* Neighbours come from the real map (stdscr), so a monster or the player
    standing next to a wall does not change its shape. */
 static int real(int y, int x)
@@ -144,16 +152,17 @@ void wc_inv(WINDOW *p)
 {
     char save[LINLEN];		/* srogue: prbuf is char[LINLEN] */
     struct linked_list *l;
-    int y = 0, ch = 'a', n = 0;
+    int y = 0, ch = 'a', n = 0, ic = be_icons();
 
     for (l = pack; l; l = next(l)) n++;
     memcpy(save, prbuf, sizeof save);
     for (l = pack; l && y < p->maxy - 1; l = next(l), y++, ch = npch(ch)) {
-        mvwprintw(p, y, 0, "%c) %s", ch, inv_name(OBJPTR(l), FALSE));
+        if (ic) mvwprintw(p, y, 0, "%c)   %s", ch, inv_name(OBJPTR(l), FALSE));  /* cols 3-4: icon */
+        else mvwprintw(p, y, 0, "%c) %c %s", ch, (OBJPTR(l))->o_type, inv_name(OBJPTR(l), FALSE));
         wclrtoeol(p);
-        be_invfg(y, wc_kind((OBJPTR(l))->o_type)->css);
+        be_invfg(y, wc_kind((OBJPTR(l))->o_type)->css, ic ? wc_obj_tile(OBJPTR(l)) : -1);
     }
-    for (; y < p->maxy; y++) { be_invfg(y, ""); if (y < p->maxy - 1) { wmove(p, y, 0); wclrtoeol(p); } }
+    for (; y < p->maxy; y++) { be_invfg(y, "", -1); if (y < p->maxy - 1) { wmove(p, y, 0); wclrtoeol(p); } }
     mvwprintw(p, y, 0, "%d/%d items, %d gold", n, MAXPACK, purse);
     wclrtoeol(p);
     memcpy(prbuf, save, sizeof save);

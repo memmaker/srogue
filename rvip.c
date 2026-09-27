@@ -182,7 +182,7 @@ explore_step()
     if ((mode == '<' || mode == '>') &&
         (mvwinch(stdscr, hero.y, hero.x) & A_CHARTEXT) == STAIRS) {
         explore_mode = 0;
-        return mode;                /* take them */
+        return 0;                   /* arrived; the player takes them */
     }
 
     memset(from, -1, sizeof from);
@@ -241,15 +241,16 @@ int key;
 
 /* groups of the help list, each starting at the key in grp_start[] */
 static char *cmd_groups[] = {
-    "Help", "Move and run", "Explore and act", "Items", "Game"
+    "Help", "Explore and act", "Items", "Game"
 };
-static int grp_start[] = { '?', 'h', 'x', 'i', 'O' };
+static int grp_start[] = { '?', 'x', 'i', 'O' };  /* moves (h..N) are left out */
 #define NGRP (sizeof grp_start / sizeof grp_start[0])
 
 /* Arrow keys / numpad 8 2 move, Enter / 5 / Space / 6 choose, Esc / 4 / 0
  * / . back.  A key of an entry chooses it; + - * choose the highlighted
  * one.  Returns the index (menu_key says how) or -1. */
 int menu_key;
+const char **menu_fg;       /* row colours for menu(), or NULL */
 
 int
 menu(title, items, keys, n)
@@ -267,6 +268,7 @@ int n;
         for (i = top; i < top + rows; i++) {
             wmove(hw, i - top + 1, 0);
             if (i == cur) wstandout(hw);
+            if (menu_fg) wc_rowfg(hw, i - top + 1, menu_fg[i]);
             wprintw(hw, "%-*s", w, items[i]);
             if (i == cur) wstandend(hw);
         }
@@ -304,6 +306,7 @@ cmd_menu()
         for (grp = -1, n = 0, h = helpstr; h->h_ch && h->h_desc && n < 80; h++) {
             if (grp + 1 < (int)NGRP && h->h_ch == grp_start[grp + 1]) grp++;
             if (grp != g || h->h_ch == '\r' || h->h_ch == ESC) continue;
+            if (strchr("hjklyubnHJKLYUBN", h->h_ch)) continue;  /* moves and runs: keys, not menu items */
             {
                 char *d = h->h_desc, k[12];
                 strcpy(k, unctrl(h->h_ch));
@@ -388,19 +391,23 @@ inv_menu()
     struct linked_list *l, *it[MAXPACK + 30];
     char *items[MAXPACK + 30], keys[MAXPACK + 30], text[MAXPACK + 30][LINELEN];
     char ak[16], *an[16], at[16][LINELEN], *ai[16];
+    const char *fg[MAXPACK + 30];
     int n = 0, i, j, na, ch = 'a';
 
     for (l = pack; l && n < MAXPACK + 30; l = next(l), n++, ch = ch == 'z' ? 'A' : ch + 1) {
         sprintf(text[n], "%c) %s", ch, inv_name(OBJPTR(l), FALSE));
         items[n] = text[n]; keys[n] = ch; it[n] = l;
+        fg[n] = wc_kind((OBJPTR(l))->o_type)->css;  /* colours as in the Inventory pane */
     }
     if (!n) {
         msg("You aren't carrying anything.");
         return ESC;
     }
     for (;;) {
-        if ((i = menu("Inventory: letter/+ use, - drop, Enter actions, Esc close",
-                      items, keys, n)) < 0) break;
+        menu_fg = fg;
+        i = menu("Inventory: letter/+ use, - drop, Enter actions, Esc close", items, keys, n);
+        menu_fg = NULL;
+        if (i < 0) break;
         na = item_actions(OBJPTR(it[i]), ak, an);
         if (menu_key == '-') j = na - 2;                /* Drop */
         else if (menu_key != '\r') j = 0;               /* main action */

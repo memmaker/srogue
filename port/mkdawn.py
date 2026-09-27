@@ -46,7 +46,7 @@ ARMOR = {'leather armor': 'bronze armor', 'ring mail': 'hotrock mail',
 TERRAIN = {'%': 'small stairs down', '^': 'stone portal', '\\': 'magic trap tile',
            '>': 'trap door tile', '{': 'arrow trap tile', '$': 'sleeping gas trap tile',
            '}': 'bear trap tile', '~': 'teleportation trap tile', '`': 'dart trap tile',
-           '"': 'blue pool', '.': 'day tile floor nswe', '#': 'night stone floor c',
+           '"': 'blue pool', '.': 'day tile floor c', '#': 'night stone floor c',
            '&': 'lit brick wall left right'}
 GENERIC = {'!': 'clear potion', '?': 'blank scroll', ':': 'food ration', ')': 'long sword',
            ']': 'iron armor', ',': 'amulet of yendor', '=': 'gold ring', '/': 'oak wand',
@@ -54,8 +54,8 @@ GENERIC = {'!': 'clear potion', '?': 'blank scroll', ':': 'food ration', ')': 'l
 WALL = 'lit brick wall '
 FIXED = {'HWALL': WALL + 'left right', 'VWALL': WALL + 'up down', 'TL': WALL + 'right down',
          'TR': WALL + 'left down', 'BL': WALL + 'right up', 'BR': WALL + 'left up',
-         'HDOOR': 'day tile floor nswe', 'VDOOR': 'day tile floor nswe',   # doors are gaps
-         'FLOOR': 'day tile floor nswe', 'CORR': 'night stone floor c'}
+         'HDOOR': 'day tile floor c', 'VDOOR': 'day tile floor c',   # doors are gaps
+         'FLOOR': 'day tile floor c', 'CORR': 'night stone floor c'}
 
 img = Image.open(os.path.join(HERE, 'tiles.png')).convert('RGBA')
 img = Image.new('RGBA', img.size, (0, 0, 0, 0))
