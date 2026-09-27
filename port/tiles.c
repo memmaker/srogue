@@ -73,6 +73,15 @@ static int terrain(int y, int x, int ch)
     return ch < 128 ? terrain_tile[ch] : -1;
 }
 
+/* An item, trap or stairs covers the terrain on stdscr: outside every room
+   it lies in a corridor (items can be dropped there). */
+static int under_kind(int y, int x)
+{
+    struct coord c;
+    c.y = y; c.x = x;
+    return roomin(&c) ? K_ROOM : K_CORR;
+}
+
 /* Floor kind of a cell on the real level (stdscr), not the player's view:
    a border is part of the terrain and must not follow the lit area. */
 static int kind(int y, int x)
@@ -80,7 +89,9 @@ static int kind(int y, int x)
     int c = real(y, x);
     if (c == ' ' || c == '-' || c == '|' || c == SECRETDOOR) return K_NONE;
     if (c == DOOR) return K_DOOR;
-    return c == PASSAGE ? K_CORR : K_ROOM;
+    if (c == PASSAGE) return K_CORR;
+    if (c == FLOOR) return K_ROOM;
+    return under_kind(y, x);
 }
 
 /* DawnLike autotile (RVIP-Finetuning): a border on each side whose
@@ -103,7 +114,7 @@ static int floor_under(int y, int x)
     if (c == PASSAGE) return autotile(y, x, K_CORR);
     if (c == DOOR) return autotile(y, x, K_DOOR);
     if (c == STAIRS || strchr("\\>{$}~`\"^", c)) return terrain_tile[c];  /* srogue: one char per trap */
-    return autotile(y, x, K_ROOM);
+    return autotile(y, x, under_kind(y, x));
 }
 
 int tile_for(int y, int x, int ch, int *under)
