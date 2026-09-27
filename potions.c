@@ -188,7 +188,7 @@ quaff()
 			p_know[P_XHEAL] = TRUE;
 			if (!iswearing(R_SLOW))
 				notslow(FALSE);
-			unconfuse();
+			unconfuse(FALSE);
 			extinguish(unconfuse);
 			sight(FALSE);
 		}
