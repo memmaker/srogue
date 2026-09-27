@@ -75,6 +75,11 @@ terr, gen = arr('terrain_tile'), arr('generic_tile')
 for ch, n in TERRAIN.items(): put(terr[ord(ch)], n)
 for ch, n in GENERIC.items(): put(gen[ord(ch)], n)
 for k, n in FIXED.items(): put(dfn('T_' + k), n)
+# autotiled floors: slot base+m is bordered on the sides of mask m (n8 s4 w2 e1)
+for m in range(16):
+    sides = ''.join(c for b, c in ((8, 'n'), (4, 's'), (2, 'w'), (1, 'e')) if m & b) or 'c'
+    put(dfn('T_FLOORS') + m, 'day tile floor ' + sides)
+    put(dfn('T_CORRS') + m, 'night stone floor ' + sides)
 
 # random looks: tiles.c hashes the look's name into a slot range; give each slot
 # the sprite named after a look that lands there, else the next unused one
