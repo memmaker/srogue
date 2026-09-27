@@ -14,7 +14,6 @@
 	var FG = '#dcdcdc', BG = '#000';
 	var GUT = 6, TITLE_H = 20, BORDER = 2;
 	var TILE_STEPS = [12, 14, 16, 18, 20, 24, 28, 32, 40, 48, 56, 64, 80, 96];
-	var FONT_MIN = 8, FONT_MAX = 28;
 	/* curses key codes (port/curses.h) */
 	var KEY = { ArrowDown: 258, ArrowUp: 259, ArrowLeft: 260, ArrowRight: 261,
 		Home: 348, PageUp: 349, End: 351, PageDown: 352 };
@@ -52,7 +51,7 @@
 		var T = panes[p];
 		if (p === P_MAP) { T.cw = T.ch = L.tile; T.pad = 0; }
 		else {
-			var f = p === P_POP ? L.font.pop : L.font[WIN[p]];
+			var f = RvipWM.fontSize(p === P_POP ? 'msg' : WIN[p]);
 			T.cw = measure(f, p); T.ch = Math.round(f * 1.3); T.pad = p === P_POP ? T.cw : 0;
 			T.font = f + 'px ' + face(p);
 		}
@@ -139,11 +138,11 @@
 	function defaultLayout() {
 		var A = areaSize(), W = A.w, H = A.h;
 		if (W < 400 || H < 300) { W = 1280; H = 720; }
-		var font = W >= 1600 ? 14 : 13, tile = TILE_STEPS[0];
+		var font = 13, tile = TILE_STEPS[0];
 		TILE_STEPS.forEach(function (t) { if (80 * t + BORDER <= W && 21 * t + BORDER <= H * 0.6) tile = t; });
 		var mapH = 21 * tile + BORDER, lower = H - mapH - GUT;
 		var statH = TITLE_H + BORDER + 2 * Math.round(font * 1.3) + 4;
-		return { v: 1, tile: tile, auto: true, font: { msg: font, stat: font, inv: font, pop: font },
+		return { v: 1, tile: tile, auto: true,
 			split: { bottom: (mapH + GUT / 2) / H, side: 0.5, stat: clamp((lower - statH - GUT / 2) / lower, 0.3, 0.95) },
 			audio: { sound: false, music: false } };
 	}
@@ -158,10 +157,8 @@
 					SPLITS.forEach(function (k) { if (s.split[k] > 0 && s.split[k] < 1) d.split[k] = s.split[k]; });
 					if (TILE_STEPS.indexOf(s.tile) >= 0) d.tile = s.tile;
 				}
-				Object.keys(d.font).forEach(function (k) {
-					if (s.font && s.font[k] >= FONT_MIN && s.font[k] <= FONT_MAX) d.font[k] = s.font[k];
-				});
 				if (s.wm) d.wm = s.wm;
+				if (s.font && d.wm && !d.wm.fs) { d.wm.fs = {}; ['msg', 'stat', 'inv', 'vis'].forEach(function (k) { if (s.font[k]) d.wm.fs[k] = s.font[k]; }); }   /* old layout: sizes move to the WM */
 				if (typeof s.face === 'string') d.face = s.face;
 				if (typeof s.mapFace === 'string') d.mapFace = s.mapFace;
 				if (s.audio) d.audio = { sound: s.audio.sound === true, music: s.audio.music === true };
@@ -222,15 +219,10 @@
 	}
 
 	var wm = null;
-	function zoomList(d) {
-		L.font.vis = clamp((L.font.vis || 13) + d, FONT_MIN, FONT_MAX);
-		document.querySelector('#t-vis .body').style.fontSize = L.font.vis + 'px';
-		saveLayout();
-	}
 	function applyDom() { if (wm) wm.apply(); }
 	function makeWM() {
 		var s = defaultLayout().split, A = areaSize();
-		var line = Math.round(L.font.msg * 1.3) + 4, stat = Math.round(L.font.stat * 1.3) + 4;
+		var line = Math.round(13 * 1.3) + 4, stat = line;
 		wm = RvipWM({
 			area: $('game'), menu: $('btn-layout'),
 			wins: [{ id: 'map', title: 'Map' }, { id: 'msg', title: 'Messages' }, { id: 'stat', title: 'Status' }, { id: 'inv', title: 'Inventory' }, { id: 'vis', title: 'Visible' }],
@@ -239,9 +231,10 @@
 			state: L.wm,
 			save: function (st) { L.wm = st; saveLayout(); },
 			layout: function (r) { rects = r; WIN.forEach(function (id, p) { fit(p); }); fit(P_POP); },
-			font: function (id, d) { if (id === 'map') zoomMap(d); else if (id === 'vis') zoomList(d); else zoomText(id, d); },
+			zoom: { map: function (s, d) { zoomMap(d); }, msg: zoomText, stat: zoomText, inv: zoomText },
 			onReset: resetLayout
 		});
+		for (var p = 1; p < panes.length; p++) if (panes[p]) shape(p);   /* the stored sizes */
 		wm.apply();
 		renderMapSel();
 	}
@@ -254,13 +247,9 @@
 		setTimeout(function () { status(''); }, 1200);
 	}
 
-	function zoomText(id, d) {
-		var ids = [id];
-		ids.forEach(function (k) { L.font[k] = clamp(L.font[k] + d, FONT_MIN, FONT_MAX); });
-		L.font.pop = L.font[ids[0]];            /* pop-ups follow the last zoomed window */
-		WIN.forEach(function (w, p) { if (p && ids.indexOf(w) >= 0) shape(p); });
-		if (panes[P_POP]) shape(P_POP);
-		applyDom(); saveLayout();
+	function zoomText() {   /* the WM set the size of one text window: redraw them */
+		for (var p = 1; p < panes.length; p++) if (panes[p]) shape(p);
+		applyDom();
 	}
 
 	function resetLayout() {
@@ -309,7 +298,7 @@
 		init: function (p, cols, rows) {
 			if (!L) loadLayout();
 			makePane(p, cols, rows);
-			if (p === P_INV) { $('game').hidden = false; if (L.font.vis) document.querySelector('#t-vis .body').style.fontSize = L.font.vis + 'px'; makeWM(); }
+			if (p === P_INV) { $('game').hidden = false; makeWM(); }
 		},
 		put: function (p, y, x, ch, t, u) {
 			var T = panes[p];
