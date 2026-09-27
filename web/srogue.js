@@ -87,8 +87,9 @@
 		c.fillStyle = inv ? FG : BG;
 		c.fillRect(px, py, T.cw, T.ch);
 		if (t >= 0 && tilesReady) {
-			if (u >= 0) c.drawImage(tiles, (u % 32) * 16, ((u / 32) | 0) * 16, 16, 16, px, py, T.cw, T.ch);
-			c.drawImage(tiles, (t % 32) * 16, ((t / 32) | 0) * 16, 16, 16, px, py, T.cw, T.ch);
+			var im = p === P_MAP && frame && tiles1.naturalWidth ? tiles1 : tiles;   /* DawnLike's 2nd frame */
+			if (u >= 0) c.drawImage(im, (u % 32) * 16, ((u / 32) | 0) * 16, 16, 16, px, py, T.cw, T.ch);
+			c.drawImage(im, (t % 32) * 16, ((t / 32) | 0) * 16, 16, 16, px, py, T.cw, T.ch);
 			return;
 		}
 		var ic = p === P_INV && T.rowIcon ? T.rowIcon[y] : -1;
@@ -502,7 +503,17 @@
 	tiles.onload = function () { tilesFinished(true); };
 	tiles.onerror = function () { tilesFinished(false); };
 	/* tile sets: same slot layout (port/mkdawn.py); the choice is a per-browser preference */
-	var TILESETS = [['tiles.png', 'NetHack'], ['tiles-dawn.png', 'DawnLike'], [null, 'None']], tileset = 0;
+	var TILESETS = [['tiles.png', 'NetHack'], ['tiles-dawn.png', 'DawnLike', 'tiles-dawn-1.png'], [null, 'None']], tileset = 0;
+	/* animation: the map swaps to the frame-1 sheet (port/mkdawn.py) twice a second */
+	var tiles1 = new Image(), frame = 0;
+	function loadFrame1() { frame = 0; if (TILESETS[tileset][2]) tiles1.src = TILESETS[tileset][2]; else tiles1.removeAttribute('src'); }
+	setInterval(function () {
+		var T = panes[P_MAP];
+		if (!T || !tilesReady || !tiles1.naturalWidth || !TILESETS[tileset][2] || document.hidden) return;
+		frame ^= 1;
+		for (var i = 0; i < T.cols * T.rows; i++) if (T.t[i] >= 0) draw(P_MAP, (i / T.cols) | 0, i % T.cols);
+		drawCursor();
+	}, 500);
 	try { tileset = +localStorage.getItem('tileset') % TILESETS.length || 0; } catch (err) { /* no storage */ }
 	function renderTileset() { var b = $('btn-tiles'); if (b) b.textContent = 'Tiles: ' + TILESETS[tileset][1]; }
 	function toggleTileset() {
@@ -517,6 +528,7 @@
 			applyDom();
 		};
 		renderMapSel();
+		loadFrame1();
 		if (!TILESETS[tileset][0]) { tilesReady = false; redraw(); return; }   /* text mode */
 		tiles.onload = function () { if (TILESETS[tileset][0]) { tilesReady = true; redraw(); } };
 		tiles.src = TILESETS[tileset][0];
@@ -548,6 +560,7 @@
 		return s;
 	}
 	if (TILESETS[tileset][0]) tiles.src = TILESETS[tileset][0]; else tilesDone = true;
+	loadFrame1();
 
 	function crashed(err) {
 		if (!running) return;
