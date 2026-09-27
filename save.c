@@ -189,8 +189,10 @@ FILE *savef;
 	fclose(savef);		/* port: flush the buffered data (was close(fnum)) */
 	signal(SIGINT, byebye);
 	signal(SIGQUIT, byebye);
+#ifndef __EMSCRIPTEN__		/* web: the autosave keeps playing on this screen */
 	wclear(cw);
 	draw(cw);
+#endif
 }
 
 /*
