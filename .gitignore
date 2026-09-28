@@ -5,3 +5,5 @@ web/dist/
 *.dSYM/
 *.o
 save/
+srogue-term
+srogue-term.exe
