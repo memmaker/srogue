@@ -22,6 +22,4 @@ cp web/index.html web/srogue.js port/tiles.png port/tiles-dawn.png port/tiles-da
 # sound effects synthesized for this game (be_sound() events); no music
 python3 web/mksounds.py "$OUT/sound"
 python3 web/make-help.py > "$OUT/help.html"
-# text fonts: the index page's fonts/ (served at ../fonts/ next to the games)
-(cd ~/Games/roguelikes-index/fonts && ls *.woff | sed 's/\.woff$//') | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().split()))' > "$OUT/fonts.json"
 ls -la "$OUT"
