@@ -19,10 +19,8 @@ emcc -O2 -fcommon -std=gnu89 -w -Wno-error=return-mismatch -Wno-error=implicit-f
 	-sEMULATE_FUNCTION_POINTER_CASTS \
 	-sFORCE_FILESYSTEM -lidbfs.js -sENVIRONMENT=web
 cp web/index.html web/srogue.js port/tiles.png port/tiles-dawn.png port/tiles-dawn-1.png "$OUT/"
-# sound effects (message text -> Dubtrain samples) and the town music
-mkdir -p "$OUT/sound" "$OUT/music"
-python3 web/sounds.py "$OUT/sound"
-cp ~/Projects/heavenAndHell/files/mods/heavenandhell/music/new_town.ogg "$OUT/music/"
+# sound effects synthesized for this game (be_sound() events); no music
+python3 web/mksounds.py "$OUT/sound"
 python3 web/make-help.py > "$OUT/help.html"
 # text fonts: the index page's fonts/ (served at ../fonts/ next to the games)
 (cd ~/Games/roguelikes-index/fonts && ls *.woff | sed 's/\.woff$//') | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read().split()))' > "$OUT/fonts.json"
